@@ -67,7 +67,7 @@
    portals. Token structure mirrors the other portal themes; only the hues
    and the added surface tokens differ. */
 :root {
-  --background: #ECFEFF;
+  --background: #FCFCFC;
   --foreground: #164E63;
   --card: #FFFFFF;
   --card-foreground: #164E63;
