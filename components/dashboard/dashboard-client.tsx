@@ -24,6 +24,8 @@ import {
   type TrendWindow,
 } from "@/lib/api/students";
 import { ApiError } from "@/lib/api/client";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import type { MessageKey } from "@/lib/i18n/locale-provider";
 import type {
   StudentAttendance,
   StudentNotification,
@@ -34,12 +36,12 @@ import type {
 
 const DAY_KEYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 
-const WINDOWS: Array<{ value: TrendWindow; label: string }> = [
-  { value: "week", label: "Week" },
-  { value: "month", label: "Month" },
-  { value: "3m", label: "3 mo" },
-  { value: "6m", label: "6 mo" },
-  { value: "1y", label: "Year" },
+const WINDOWS: Array<{ value: TrendWindow; labelKey: MessageKey }> = [
+  { value: "week", labelKey: "common.windowWeek" },
+  { value: "month", labelKey: "common.windowMonth" },
+  { value: "3m", labelKey: "common.window3m" },
+  { value: "6m", labelKey: "common.window6m" },
+  { value: "1y", labelKey: "common.window1y" },
 ];
 
 function errorMessage(cause: unknown, fallback: string): string {
@@ -47,6 +49,7 @@ function errorMessage(cause: unknown, fallback: string): string {
 }
 
 export function DashboardClient() {
+  const { t } = useI18n();
   const [profile, setProfile] = React.useState<StudentProfile | null>(null);
   const [timetable, setTimetable] = React.useState<StudentTimetable | null>(null);
   const [results, setResults] = React.useState<StudentResults | null>(null);
@@ -88,7 +91,7 @@ export function DashboardClient() {
         setLoading(false);
       },
       (cause: unknown) => {
-        setError(errorMessage(cause, "Unable to load dashboard"));
+        setError(errorMessage(cause, t("dashboard.loadError")));
         setLoading(false);
       },
     );
@@ -164,11 +167,11 @@ export function DashboardClient() {
   if (error && !profile) {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t("nav.dashboard")}</h1>
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
           <span>{error}</span>
           <Button type="button" variant="outline" size="sm" onClick={handleRetry} disabled={loading}>
-            Retry
+            {t("common.retry")}
           </Button>
         </div>
       </div>
@@ -189,7 +192,7 @@ export function DashboardClient() {
           {profile.year.name} · {profile.class.className}
         </p>
         <h1 className="mt-1 text-xl font-semibold tracking-tight">
-          Welcome, {profile.student.firstName}
+          {t("dashboard.welcome", { name: profile.student.firstName })}
         </h1>
       </div>
 
@@ -197,7 +200,7 @@ export function DashboardClient() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <GraduationCap size={14} aria-hidden /> Average score
+              <GraduationCap size={14} aria-hidden /> {t("dashboard.averageScore")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -207,14 +210,18 @@ export function DashboardClient() {
                 : `${results.averagePercentage}%`}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {results ? `${results.count} published result${results.count === 1 ? "" : "s"}` : "—"}
+              {results
+                ? results.count === 1
+                  ? t("common.publishedResultOne")
+                  : t("common.publishedResultMany", { count: results.count })
+                : "—"}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <CalendarCheck size={14} aria-hidden /> Attendance
+              <CalendarCheck size={14} aria-hidden /> {t("dashboard.attendance")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -225,7 +232,10 @@ export function DashboardClient() {
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               {attendance
-                ? `${attendance.summary.attended} of ${attendance.summary.total} sessions`
+                ? t("dashboard.attendedOf", {
+                    attended: attendance.summary.attended,
+                    total: attendance.summary.total,
+                  })
                 : "—"}
             </p>
           </CardContent>
@@ -233,14 +243,14 @@ export function DashboardClient() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Bell size={14} aria-hidden /> Unread
+              <Bell size={14} aria-hidden /> {t("dashboard.unread")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold">{unread}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               <Link href="/notifications" className="hover:underline">
-                View notifications
+                {t("dashboard.viewNotifications")}
               </Link>
             </p>
           </CardContent>
@@ -249,11 +259,11 @@ export function DashboardClient() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Today&apos;s classes</CardTitle>
+          <CardTitle className="text-sm">{t("dashboard.todaysClasses")}</CardTitle>
         </CardHeader>
         <CardContent>
           {!todayIsGridDay || todayEntries.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No classes scheduled today.</p>
+            <p className="text-sm text-muted-foreground">{t("dashboard.noClassesToday")}</p>
           ) : (
             <>
               <div className="sm:hidden print:hidden">
@@ -263,7 +273,7 @@ export function DashboardClient() {
                 <TimetableGrid
                   entries={todayEntries}
                   days={[todayKey as GridDay]}
-                  caption="Today's class timetable across periods 1 through 9"
+                  caption={t("dashboard.todayCaption")}
                 />
               </div>
             </>
@@ -279,8 +289,8 @@ export function DashboardClient() {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle className="text-sm">Performance</CardTitle>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Trend window">
+            <CardTitle className="text-sm">{t("dashboard.performance")}</CardTitle>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("common.trendWindowAria")}>
               {WINDOWS.map((option) => (
                 <Button
                   key={option.value}
@@ -290,7 +300,7 @@ export function DashboardClient() {
                   className="h-8"
                   onClick={() => setWindow(option.value)}
                 >
-                  {option.label}
+                  {t(option.labelKey)}
                 </Button>
               ))}
             </div>
@@ -298,22 +308,22 @@ export function DashboardClient() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2">
-            <span className="text-sm font-medium">Results</span>
+            <span className="text-sm font-medium">{t("dashboard.results")}</span>
             {resultsTrend ? (
               <TrendIndicator delta={resultsTrend.delta} series={resultsTrend.series} />
             ) : (
-              <span className="text-xs text-muted-foreground">Unavailable</span>
+              <span className="text-xs text-muted-foreground">{t("common.unavailable")}</span>
             )}
             {resultsTrend && (resultsTrend.byType.test.samples > 0 || resultsTrend.byType.exam.samples > 0) && (
               <p className="w-full text-xs text-muted-foreground">
-                Tests{" "}
+                {t("results.tests")}{" "}
                 <span className="font-medium text-foreground">
                   {resultsTrend.byType.test.average === null ||
                   resultsTrend.byType.test.average === undefined
                     ? "—"
                     : `${resultsTrend.byType.test.average}%`}
                 </span>{" "}
-                ({resultsTrend.byType.test.samples}) · Exams{" "}
+                ({resultsTrend.byType.test.samples}) · {t("results.exams")}{" "}
                 <span className="font-medium text-foreground">
                   {resultsTrend.byType.exam.average === null ||
                   resultsTrend.byType.exam.average === undefined
@@ -329,17 +339,16 @@ export function DashboardClient() {
                   <span className="font-medium text-foreground">
                     {resultsTrend.current.average}%
                   </span>{" "}
-                  across {resultsTrend.current.samples} result
-                  {resultsTrend.current.samples === 1 ? "" : "s"} this window
+                  {t("common.acrossResults", { count: resultsTrend.current.samples })}
                 </p>
               )}
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2">
-            <span className="text-sm font-medium">Attendance</span>
+            <span className="text-sm font-medium">{t("dashboard.attendance")}</span>
             {attendanceTrend ? (
               <TrendIndicator delta={attendanceTrend.delta} series={attendanceTrend.series} />
             ) : (
-              <span className="text-xs text-muted-foreground">Unavailable</span>
+              <span className="text-xs text-muted-foreground">{t("common.unavailable")}</span>
             )}
             {attendanceTrend?.current?.average !== null &&
               attendanceTrend?.current?.average !== undefined && (
@@ -347,8 +356,7 @@ export function DashboardClient() {
                   <span className="font-medium text-foreground">
                     {attendanceTrend.current.average}%
                   </span>{" "}
-                  across {attendanceTrend.current.samples} session
-                  {attendanceTrend.current.samples === 1 ? "" : "s"} this window
+                  {t("common.acrossSessions", { count: attendanceTrend.current.samples })}
                 </p>
               )}
           </div>
@@ -359,19 +367,19 @@ export function DashboardClient() {
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <Bell size={14} className="text-muted-foreground" aria-hidden /> Recent announcements
+              <Bell size={14} className="text-muted-foreground" aria-hidden /> {t("dashboard.recentAnnouncements")}
             </CardTitle>
             <Link
               href="/notifications"
               className="inline-flex h-7 items-center rounded-md px-2.5 text-[0.8rem] font-medium hover:bg-muted hover:text-foreground"
             >
-              View all
+              {t("common.viewAll")}
             </Link>
           </div>
         </CardHeader>
         <CardContent>
           {announcements.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No announcements yet.</p>
+            <p className="text-sm text-muted-foreground">{t("dashboard.noAnnouncements")}</p>
           ) : (
             <ul className="space-y-2">
               {announcements.map((item) => (
@@ -380,7 +388,7 @@ export function DashboardClient() {
                     <p className="min-w-0 flex-1 text-sm font-medium leading-snug line-clamp-2">{item.title}</p>
                     {!item.readAt && (
                       <Badge variant="info" className="shrink-0">
-                        New
+                        {t("common.new")}
                       </Badge>
                     )}
                   </div>

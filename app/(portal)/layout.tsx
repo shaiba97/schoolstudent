@@ -1,6 +1,7 @@
 import { BottomNav } from "@/components/portal/bottom-nav";
 import { TenantLockedNotice } from "@/components/portal/tenant-locked-notice";
 import { MobileTopBar } from "@/components/portal/mobile-top-bar";
+import { PortalName } from "@/components/portal/portal-name";
 import { Sidebar } from "@/components/portal/sidebar";
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
@@ -11,7 +12,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       <MobileTopBar />
       <header className="hidden shrink-0 self-start print:hidden md:sticky md:top-4 md:block md:max-h-[calc(100vh-2rem)] md:w-56 md:overflow-y-auto">
         <div className="px-3 pb-2 pt-1">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Student Portal</p>
+          <PortalName />
         </div>
         <Sidebar />
       </header>

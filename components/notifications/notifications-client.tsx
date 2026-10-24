@@ -15,12 +15,14 @@ import { ApiError } from "@/lib/api/client";
 import type { StudentNotification } from "@/lib/api/types";
 import { useRealtimeEvent } from "@/lib/realtime/socket";
 import { formatDateTime } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/locale-provider";
 
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof ApiError ? cause.message : fallback;
 }
 
 export function NotificationsClient() {
+  const { t, locale } = useI18n();
   const [items, setItems] = React.useState<StudentNotification[]>([]);
   const [filter, setFilter] = React.useState<"all" | "unread">("all");
   const [error, setError] = React.useState("");
@@ -35,7 +37,7 @@ export function NotificationsClient() {
         setLoading(false);
       },
       (cause: unknown) => {
-        setError(errorMessage(cause, "Unable to load notifications"));
+        setError(errorMessage(cause, t("notifications.loadError")));
         setLoading(false);
       },
     );
@@ -74,7 +76,7 @@ export function NotificationsClient() {
       await markAllNotificationsRead();
       setItems((current) => current.map((row) => ({ ...row, readAt: row.readAt ?? new Date().toISOString() })));
     } catch (cause) {
-      setError(errorMessage(cause, "Unable to mark all read"));
+      setError(errorMessage(cause, t("notifications.markAllError")));
     } finally {
       setMarkingAll(false);
     }
@@ -98,13 +100,13 @@ export function NotificationsClient() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {unread.length} unread
+            {t("notifications.unreadLine", { count: unread.length })}
           </p>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight">Notifications</h1>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight">{t("notifications.title")}</h1>
         </div>
         {unread.length > 0 && (
           <Button type="button" variant="outline" size="sm" onClick={() => void handleMarkAll()} disabled={markingAll}>
-            {markingAll ? "Working…" : "Mark all read"}
+            {markingAll ? t("common.working") : t("notifications.markAllRead")}
           </Button>
         )}
       </div>
@@ -113,14 +115,14 @@ export function NotificationsClient() {
         <p role="alert" className="flex flex-wrap items-center justify-between gap-3 text-sm text-destructive">
           <span>{error}</span>
           <Button type="button" variant="outline" size="sm" onClick={handleRetry} disabled={loading}>
-            Retry
+            {t("common.retry")}
           </Button>
         </p>
       )}
 
       <Card>
         <CardContent className="p-3">
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("common.filterAria")}>
             {(["all", "unread"] as const).map((option) => (
               <Button
                 key={option}
@@ -130,7 +132,9 @@ export function NotificationsClient() {
                 className="h-8"
                 onClick={() => setFilter(option)}
               >
-                {option === "all" ? `All (${items.length})` : `Unread (${unread.length})`}
+                {option === "all"
+                  ? t("notifications.filterAll", { count: items.length })
+                  : t("notifications.filterUnread", { count: unread.length })}
               </Button>
             ))}
           </div>
@@ -142,12 +146,12 @@ export function NotificationsClient() {
           <CardContent className="p-6 text-center">
             <Bell size={20} className="mx-auto text-muted-foreground" aria-hidden />
             <p className="mt-2 text-sm font-medium">
-              {filter === "unread" ? "All caught up" : "No notifications yet"}
+              {filter === "unread" ? t("notifications.allCaughtUp") : t("notifications.none")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {filter === "unread"
-                ? "Every announcement has been read."
-                : "Announcements from your school appear here."}
+                ? t("notifications.allReadHint")
+                : t("notifications.noneHint")}
             </p>
           </CardContent>
         </Card>
@@ -158,19 +162,19 @@ export function NotificationsClient() {
               <button
                 type="button"
                 onClick={() => void handleOpen(item)}
-                className="block w-full rounded-lg border bg-card p-3 text-left shadow-sm transition-colors hover:bg-muted/50"
-                aria-label={item.readAt ? item.title : `${item.title} (unread)`}
+                className="block w-full rounded-lg border bg-card p-3 text-start shadow-sm transition-colors hover:bg-muted/50"
+                aria-label={item.readAt ? item.title : `${item.title} ${t("notifications.unreadBadge")}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="min-w-0 flex-1 text-sm font-medium leading-snug">{item.title}</p>
                   {!item.readAt && (
                     <Badge variant="info" className="shrink-0">
-                      New
+                      {t("common.new")}
                     </Badge>
                   )}
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{item.body}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(item.createdAt)}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(item.createdAt, locale)}</p>
               </button>
             </li>
           ))}

@@ -7,9 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRealtimeEvent } from "@/lib/realtime/socket";
 import { useIsMobile, useUnreadCount } from "./use-unread-count";
+import { LanguageToggle } from "./language-toggle";
+import { useI18n } from "@/lib/i18n/locale-provider";
 
 export function MobileTopBar() {
   const pathname = usePathname();
+  const { t } = useI18n();
   const isMobile = useIsMobile();
   const { unread, loaded, bump, refresh } = useUnreadCount(isMobile);
   useRealtimeEvent(
@@ -30,7 +33,7 @@ export function MobileTopBar() {
           <Link
             href="/notifications"
             aria-current={notificationsActive ? "page" : undefined}
-            aria-label={showBadge ? `Notifications, ${unread} unread` : "Notifications"}
+            aria-label={showBadge ? t("nav.unread", { label: t("nav.notificationsLabel"), count: unread }) : t("nav.notificationsLabel")}
             className={cn(
               "relative inline-flex size-10 items-center justify-center rounded-lg hover:bg-primary-foreground/15",
               notificationsActive ? "text-primary-foreground" : "text-primary-foreground/70 hover:text-primary-foreground",
@@ -48,13 +51,16 @@ export function MobileTopBar() {
             )}
           </Link>
         </div>
-        <p className="hidden text-xs font-medium uppercase tracking-wider text-primary-foreground/70 min-[360px]:block">
-          Student Portal
-        </p>
+        <div className="flex items-center gap-2 min-[380px]:gap-3">
+          <p className="hidden text-xs font-medium uppercase tracking-wider text-primary-foreground/70 min-[360px]:block">
+            {t("portal.headerName")}
+          </p>
+          <LanguageToggle />
+        </div>
         <Link
           href="/profile"
           aria-current={profileActive ? "page" : undefined}
-          aria-label="My profile"
+          aria-label={t("nav.profileLabel")}
           className={cn(
             "inline-flex size-10 items-center justify-center rounded-lg hover:bg-primary-foreground/15",
             profileActive ? "text-primary-foreground" : "text-primary-foreground/70 hover:text-primary-foreground",

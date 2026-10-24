@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
+  BanknoteIcon,
   CalendarCheck,
   FolderOpen,
   GraduationCap,
@@ -14,19 +15,23 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useIsMobile, useUnreadCount } from "./use-unread-count";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import type { MessageKey } from "@/lib/i18n/locale-provider";
 
-const ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/results", label: "Results", icon: GraduationCap },
-  { href: "/timetable", label: "Timetable", icon: Table2 },
-  { href: "/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/notifications", label: "Notifications", icon: Bell },
-  { href: "/cases", label: "Cases", icon: FolderOpen },
-  { href: "/profile", label: "Profile", icon: UserRound },
+const ITEMS: Array<{ href: string; labelKey: MessageKey; icon: typeof LayoutDashboard }> = [
+  { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/results", labelKey: "nav.results", icon: GraduationCap },
+  { href: "/timetable", labelKey: "nav.timetable", icon: Table2 },
+  { href: "/attendance", labelKey: "nav.attendance", icon: CalendarCheck },
+  { href: "/finance", labelKey: "nav.finance", icon: BanknoteIcon },
+  { href: "/notifications", labelKey: "nav.notifications", icon: Bell },
+  { href: "/cases", labelKey: "nav.cases", icon: FolderOpen },
+  { href: "/profile", labelKey: "nav.profile", icon: UserRound },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { t } = useI18n();
   // Desktop-only fetch: the mobile top bar owns the badge below `md`, so this
   // stays off there to avoid requesting the feed twice for one screen.
   const isMobile = useIsMobile();
@@ -34,17 +39,18 @@ export function Sidebar() {
   const showBadge = !isMobile && loaded && unread > 0;
 
   return (
-    <nav aria-label="Student portal" className="flex flex-col gap-1 overflow-visible p-2">
+    <nav aria-label={t("nav.label")} className="flex flex-col gap-1 overflow-visible p-2">
       {ITEMS.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
         const withBadge = item.href === "/notifications" && showBadge;
+        const label = t(item.labelKey);
         return (
           <Link
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            aria-label={withBadge ? `${item.label}, ${unread} unread` : undefined}
+            aria-label={withBadge ? t("nav.unread", { label, count: unread }) : undefined}
             className={cn(
               "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               active
@@ -53,7 +59,7 @@ export function Sidebar() {
             )}
           >
             <Icon size={16} aria-hidden />
-            <span className="whitespace-nowrap">{item.label}</span>
+            <span className="whitespace-nowrap">{label}</span>
             {withBadge && (
               <Badge
                 aria-hidden="true"

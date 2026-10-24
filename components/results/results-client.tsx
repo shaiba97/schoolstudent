@@ -16,12 +16,15 @@ import {
 import { ApiError } from "@/lib/api/client";
 import type { StudentResults } from "@/lib/api/types";
 import { formatDate } from "@/lib/utils";
+import { useI18n, interpolate } from "@/lib/i18n/locale-provider";
+import type { MessageKey } from "@/lib/i18n/locale-provider";
 
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof ApiError ? cause.message : fallback;
 }
 
 export function ResultsClient() {
+  const { t } = useI18n();
   const [data, setData] = React.useState<StudentResults | null>(null);
   const [subject, setSubject] = React.useState("all");
   const [examType, setExamType] = React.useState("all");
@@ -37,7 +40,7 @@ export function ResultsClient() {
         setLoading(false);
       },
       (cause: unknown) => {
-        setError(errorMessage(cause, "Unable to load results"));
+        setError(errorMessage(cause, t("results.loadError")));
         setLoading(false);
       },
     );
@@ -72,7 +75,7 @@ export function ResultsClient() {
       anchor.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (cause) {
-      setError(errorMessage(cause, "Unable to download result slip"));
+      setError(errorMessage(cause, t("results.downloadError")));
     } finally {
       setDownloading(null);
     }
@@ -161,10 +164,15 @@ export function ResultsClient() {
         ? Math.round((scored.reduce((sum, row) => sum + (row.percentage as number), 0) / scored.length) * 10) / 10
         : null;
     };
+    const titleKey: Record<string, MessageKey> = {
+      test: "results.tests",
+      exam: "results.exams",
+      other: "results.other",
+    };
     return [
-      { key: "test", title: "Tests", groups: byBucket.get("test") ?? [], average: null as number | null },
-      { key: "exam", title: "Exams", groups: byBucket.get("exam") ?? [], average: null as number | null },
-      { key: "other", title: "Other", groups: byBucket.get("other") ?? [], average: null as number | null },
+      { key: "test", title: titleKey.test, groups: byBucket.get("test") ?? [], average: null as number | null },
+      { key: "exam", title: titleKey.exam, groups: byBucket.get("exam") ?? [], average: null as number | null },
+      { key: "other", title: titleKey.other, groups: byBucket.get("other") ?? [], average: null as number | null },
     ]
       .map((section) => ({ ...section, average: averageOf(section.groups) }))
       .filter((section) => section.groups.length > 0);
@@ -183,11 +191,11 @@ export function ResultsClient() {
   if (error && !data) {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl font-semibold tracking-tight">Results</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t("results.title")}</h1>
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
           <span>{error}</span>
           <Button type="button" variant="outline" size="sm" onClick={handleRetry} disabled={loading}>
-            Retry
+            {t("common.retry")}
           </Button>
         </div>
       </div>
@@ -200,9 +208,9 @@ export function ResultsClient() {
     <div className="space-y-4">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Published results only
+          {t("results.subtitle")}
         </p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight">Results</h1>
+        <h1 className="mt-1 text-xl font-semibold tracking-tight">{t("results.title")}</h1>
       </div>
 
       <Card>
@@ -214,14 +222,17 @@ export function ResultsClient() {
               : `${data.averagePercentage}%`}
           </p>
           <p className="text-sm text-muted-foreground">
-            overall across {data.count} published result{data.count === 1 ? "" : "s"}
+            {t("results.overall")}{" "}
+            {data.count === 1
+              ? t("common.publishedResultOne")
+              : t("common.publishedResultMany", { count: data.count })}
           </p>
           <p className="w-full text-sm text-muted-foreground">
-            Tests{" "}
+            {t("results.tests")}{" "}
             <span className="font-medium text-foreground">
               {split.test.average === null ? "—" : `${split.test.average}%`}
             </span>{" "}
-            ({split.test.count}) · Exams{" "}
+            ({split.test.count}) · {t("results.exams")}{" "}
             <span className="font-medium text-foreground">
               {split.exam.average === null ? "—" : `${split.exam.average}%`}
             </span>{" "}
@@ -231,7 +242,7 @@ export function ResultsClient() {
       </Card>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Subject">
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("common.subjectsAria")}>
           <Button
             key="all-subjects"
             type="button"
@@ -240,7 +251,7 @@ export function ResultsClient() {
             className="h-10"
             onClick={() => setSubject("all")}
           >
-            All subjects
+            {t("results.allSubjects")}
           </Button>
           {subjects.map((name) => (
             <Button
@@ -255,20 +266,20 @@ export function ResultsClient() {
             </Button>
           ))}
         </div>
-        <label htmlFor="results-exam-type" className="sr-only">Exam type</label>
+        <label htmlFor="results-exam-type" className="sr-only">{t("results.examType")}</label>
         <select
           id="results-exam-type"
           value={examType}
           onChange={(event) => setExamType(event.target.value)}
           className="flex h-9 rounded-lg border border-input bg-background px-2 py-1 text-sm shadow-sm"
         >
-          <option value="all">All types</option>
+          <option value="all">{t("results.allTypes")}</option>
           {examTypes.map((type) => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
         <span className="ml-auto text-xs text-muted-foreground" role="status">
-          {rows.length} shown
+          {t("common.shown", { count: rows.length })}
         </span>
       </div>
 
@@ -280,21 +291,21 @@ export function ResultsClient() {
         <Card>
           <CardContent className="p-6 text-center">
             <GraduationCap size={20} className="mx-auto text-muted-foreground" aria-hidden />
-            <p className="mt-2 text-sm font-medium">No results here</p>
+            <p className="mt-2 text-sm font-medium">{t("results.noResults")}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Published results appear here once your exams are released.
+              {t("results.noResultsHint")}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-5">
           {sections.map((section) => (
-            <section key={section.key} aria-label={`${section.title} results`}>
+            <section key={section.key} aria-label={t("results.sectionAria", { section: t(section.title) })}>
               <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-sm font-semibold tracking-tight">{section.title}</h2>
+                <h2 className="text-sm font-semibold tracking-tight">{t(section.title)}</h2>
                 {section.average !== null && (
                   <p className="text-xs text-muted-foreground">
-                    {section.title} average{" "}
+                    {interpolate(t("results.averageOf"), { section: t(section.title) })}{" "}
                     <span className="font-medium text-foreground">{section.average}%</span>
                   </p>
                 )}
@@ -327,7 +338,7 @@ export function ResultsClient() {
                         disabled={busy}
                         onClick={() => void handleDownload(first.examId, first.examName)}
                       >
-                        <Download size={14} aria-hidden /> {busy ? "Working…" : "Slip"}
+                        <Download size={14} aria-hidden /> {busy ? t("common.working") : t("results.slip")}
                       </Button>
                       <Button
                         type="button"
@@ -336,7 +347,7 @@ export function ResultsClient() {
                         onClick={() => window.print()}
                         className="print:hidden"
                       >
-                        <Printer size={14} aria-hidden /> Print
+                        <Printer size={14} aria-hidden /> {t("common.print")}
                       </Button>
                     </div>
                   </div>
@@ -373,7 +384,7 @@ export function ResultsClient() {
                   </ol>
                   {average !== null && (
                     <p className="text-right text-sm text-muted-foreground">
-                      Exam average <span className="font-medium text-foreground">{average}%</span>
+                      {t("results.examAverage")} <span className="font-medium text-foreground">{average}%</span>
                     </p>
                   )}
                 </CardContent>

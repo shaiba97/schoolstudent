@@ -11,10 +11,25 @@ import { ApiError } from "@/lib/api/client";
 import type { StudentCase } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/utils";
+import { useI18n, interpolate } from "@/lib/i18n/locale-provider";
+import type { MessageKey } from "@/lib/i18n/locale-provider";
 
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof ApiError ? cause.message : fallback;
 }
+
+const SEVERITY_KEY: Record<string, MessageKey> = {
+  MINOR: "cases.severityMINOR",
+  MODERATE: "cases.severityMODERATE",
+  SEVERE: "cases.severitySEVERE",
+};
+
+const STATUS_KEY: Record<string, MessageKey> = {
+  OPEN: "cases.statusOPEN",
+  UNDER_REVIEW: "cases.statusUNDER_REVIEW",
+  RESOLVED: "cases.statusRESOLVED",
+  DISMISSED: "cases.statusDISMISSED",
+};
 
 function severityVariant(severity: string): "destructive" | "warning" | "secondary" {
   if (severity === "SEVERE") return "destructive";
@@ -29,6 +44,7 @@ function statusVariant(status: string): "muted" | "secondary" | "success" {
 }
 
 export function CasesClient() {
+  const { t, locale } = useI18n();
   const [cases, setCases] = React.useState<StudentCase[]>([]);
   const [openId, setOpenId] = React.useState<string | null>(null);
   const [error, setError] = React.useState("");
@@ -42,7 +58,7 @@ export function CasesClient() {
         setLoading(false);
       },
       (cause: unknown) => {
-        setError(errorMessage(cause, "Unable to load cases"));
+        setError(errorMessage(cause, t("cases.loadError")));
         setLoading(false);
       },
     );
@@ -70,11 +86,11 @@ export function CasesClient() {
   if (error && cases.length === 0) {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl font-semibold tracking-tight">Cases</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t("cases.title")}</h1>
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
           <span>{error}</span>
           <Button type="button" variant="outline" size="sm" onClick={handleRetry} disabled={loading}>
-            Retry
+            {t("common.retry")}
           </Button>
         </div>
       </div>
@@ -85,18 +101,18 @@ export function CasesClient() {
     <div className="space-y-4">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Read-only · {cases.length} record{cases.length === 1 ? "" : "s"}
+          {t("cases.subtitle", { count: cases.length })}
         </p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight">Cases</h1>
+        <h1 className="mt-1 text-xl font-semibold tracking-tight">{t("cases.title")}</h1>
       </div>
 
       {cases.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center">
             <FolderOpen size={20} className="mx-auto text-muted-foreground" aria-hidden />
-            <p className="mt-2 text-sm font-medium">No cases on file</p>
+            <p className="mt-2 text-sm font-medium">{t("cases.noCases")}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Disciplinary records filed against you would appear here.
+              {t("cases.noCasesHint")}
             </p>
           </CardContent>
         </Card>
@@ -115,18 +131,15 @@ export function CasesClient() {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">{item.title}</span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
-                      Filed {formatDate(item.filedAt)}
+                      {interpolate(t("cases.filed"), { date: formatDate(item.filedAt, locale) })}
                       {item.filedByName ? ` · ${item.filedByName}` : ""}
                     </span>
                   </span>
                   <Badge variant={severityVariant(item.severity)} className="shrink-0">
-                    {item.severity.charAt(0) + item.severity.slice(1).toLowerCase()}
+                    {SEVERITY_KEY[item.severity] ? t(SEVERITY_KEY[item.severity]) : item.severity}
                   </Badge>
                   <Badge variant={statusVariant(item.status)} className="hidden shrink-0 sm:inline-flex">
-                    {item.status
-                      .split("_")
-                      .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
-                      .join(" ")}
+                    {STATUS_KEY[item.status] ? t(STATUS_KEY[item.status]) : item.status}
                   </Badge>
                   <ChevronDown
                     size={16}
@@ -137,16 +150,15 @@ export function CasesClient() {
                 {open && (
                   <div className="space-y-2 border-t px-3 py-3">
                     <Badge variant={statusVariant(item.status)} className="sm:hidden">
-                      {item.status
-                        .split("_")
-                        .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
-                        .join(" ")}
+                      {STATUS_KEY[item.status] ? t(STATUS_KEY[item.status]) : item.status}
                     </Badge>
                     <p className="text-sm">{item.description}</p>
                     {item.resolutionNote && (
                       <div className="rounded-lg bg-muted p-3">
                         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                          Resolution{item.resolvedAt ? ` · ${formatDate(item.resolvedAt)}` : ""}
+                          {item.resolvedAt
+                            ? interpolate(t("cases.resolution"), {}) + ` · ${formatDate(item.resolvedAt, locale)}`
+                            : t("cases.resolution")}
                         </p>
                         <p className="mt-1 text-sm">{item.resolutionNote}</p>
                       </div>

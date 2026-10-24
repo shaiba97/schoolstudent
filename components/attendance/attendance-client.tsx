@@ -17,13 +17,15 @@ import {
 import { ApiError } from "@/lib/api/client";
 import type { AttendanceRecord, StudentAttendance } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+import { useI18n, interpolate } from "@/lib/i18n/locale-provider";
+import type { MessageKey } from "@/lib/i18n/locale-provider";
 
-const WINDOWS: Array<{ value: TrendWindow; label: string }> = [
-  { value: "week", label: "Week" },
-  { value: "month", label: "Month" },
-  { value: "3m", label: "3 mo" },
-  { value: "6m", label: "6 mo" },
-  { value: "1y", label: "Year" },
+const WINDOWS: Array<{ value: TrendWindow; labelKey: MessageKey }> = [
+  { value: "week", labelKey: "common.windowWeek" },
+  { value: "month", labelKey: "common.windowMonth" },
+  { value: "3m", labelKey: "common.window3m" },
+  { value: "6m", labelKey: "common.window6m" },
+  { value: "1y", labelKey: "common.window1y" },
 ];
 
 const STATUS_STYLE: Record<string, string> = {
@@ -31,6 +33,13 @@ const STATUS_STYLE: Record<string, string> = {
   ABSENT: "bg-destructive/10 text-destructive",
   LATE: "bg-warning/15 text-warning",
   EXCUSED: "bg-muted text-muted-foreground",
+};
+
+const STATUS_KEY: Record<string, MessageKey> = {
+  PRESENT: "attendance.statusPRESENT",
+  ABSENT: "attendance.statusABSENT",
+  LATE: "attendance.statusLATE",
+  EXCUSED: "attendance.statusEXCUSED",
 };
 
 const STATUS_RANK: Record<string, number> = { ABSENT: 0, LATE: 1, EXCUSED: 2, PRESENT: 3 };
@@ -43,8 +52,25 @@ function monthKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function monthName(date: Date): string {
-  return date.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+function monthName(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/** Narrow weekday glyphs, Monday-first, in the active locale. */
+function weekdayLetters(locale: string): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const probe = new Date(Date.UTC(2023, 0, 2 + i));
+    out.push(
+      new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", {
+        weekday: "narrow",
+      }).format(probe),
+    );
+  }
+  return out;
 }
 
 function shiftMonth(date: Date, delta: number): Date {
@@ -52,6 +78,7 @@ function shiftMonth(date: Date, delta: number): Date {
 }
 
 export function AttendanceClient() {
+  const { t, locale } = useI18n();
   const [data, setData] = React.useState<StudentAttendance | null>(null);
   const [window, setWindow] = React.useState<TrendWindow>("3m");
   const [trend, setTrend] = React.useState<{
@@ -72,7 +99,7 @@ export function AttendanceClient() {
         setLoading(false);
       },
       (cause: unknown) => {
-        setError(errorMessage(cause, "Unable to load attendance"));
+        setError(errorMessage(cause, t("attendance.loadError")));
         setLoading(false);
       },
     );
@@ -153,11 +180,11 @@ export function AttendanceClient() {
   if (error && !data) {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl font-semibold tracking-tight">Attendance</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t("attendance.title")}</h1>
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
           <span>{error}</span>
           <Button type="button" variant="outline" size="sm" onClick={handleRetry} disabled={loading}>
-            Retry
+            {t("common.retry")}
           </Button>
         </div>
       </div>
@@ -171,58 +198,58 @@ export function AttendanceClient() {
     <div className="space-y-4">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          This academic year
+          {t("attendance.subtitle")}
         </p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight">Attendance</h1>
+        <h1 className="mt-1 text-xl font-semibold tracking-tight">{t("attendance.title")}</h1>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-4">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <CalendarCheck size={14} aria-hidden /> Rate
+              <CalendarCheck size={14} aria-hidden /> {t("attendance.rate")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold">
               {summary.percentage === null || summary.percentage === undefined ? "—" : `${summary.percentage}%`}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">Present + late count as attended</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("attendance.rateNote")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Present</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("attendance.present")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold">{summary.present}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{summary.late} late</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("attendance.lateCount", { count: summary.late })}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Absent</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("attendance.absent")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold">{summary.absent}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{summary.excused} excused</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("attendance.excusedCount", { count: summary.excused })}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Trend</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("attendance.trend")}</CardTitle>
           </CardHeader>
           <CardContent>
             {trend ? (
               <TrendIndicator delta={trend.delta} series={trend.series} />
             ) : (
-              <span className="text-xs text-muted-foreground">Unavailable</span>
+              <span className="text-xs text-muted-foreground">{t("common.unavailable")}</span>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Trend window">
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("common.trendWindowAria")}>
         {WINDOWS.map((option) => (
           <Button
             key={option.value}
@@ -232,28 +259,28 @@ export function AttendanceClient() {
             className="h-8"
             onClick={() => setWindow(option.value)}
           >
-            {option.label}
+            {t(option.labelKey)}
           </Button>
         ))}
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="calendar">Calendar</TabsTrigger>
-          <TabsTrigger value="list">List</TabsTrigger>
+          <TabsTrigger value="calendar">{t("attendance.calendar")}</TabsTrigger>
+          <TabsTrigger value="list">{t("attendance.list")}</TabsTrigger>
         </TabsList>
         <TabsContent value="calendar">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between gap-2">
-                <CardTitle className="text-sm">{monthName(viewMonth)}</CardTitle>
+                <CardTitle className="text-sm">{monthName(viewMonth, locale)}</CardTitle>
                 <div className="flex items-center gap-1">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     className="h-8"
-                    aria-label="Previous month"
+                    aria-label={t("attendance.prevMonth")}
                     onClick={() => setViewMonth((m) => shiftMonth(m, -1))}
                   >
                     <ChevronLeft size={14} aria-hidden />
@@ -268,14 +295,14 @@ export function AttendanceClient() {
                       setSelectedDay(null);
                     }}
                   >
-                    Today
+                    {t("attendance.today")}
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     className="h-8"
-                    aria-label="Next month"
+                    aria-label={t("attendance.nextMonth")}
                     onClick={() => setViewMonth((m) => shiftMonth(m, 1))}
                   >
                     <ChevronRight size={14} aria-hidden />
@@ -284,8 +311,12 @@ export function AttendanceClient() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-7 gap-1 text-center" role="grid" aria-label={`Attendance for ${monthName(viewMonth)}`}>
-                {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+              <div
+                className="grid grid-cols-7 gap-1 text-center"
+                role="grid"
+                aria-label={t("attendance.gridAria", { month: monthName(viewMonth, locale) })}
+              >
+                {weekdayLetters(locale).map((d, i) => (
                   <span key={i} className="py-1 text-xs font-medium text-muted-foreground" aria-hidden="true">
                     {d}
                   </span>
@@ -306,7 +337,11 @@ export function AttendanceClient() {
                       type="button"
                       onClick={() => setSelectedDay(selected ? null : day)}
                       aria-pressed={selected}
-                      aria-label={`${day}${records.length > 0 ? `, ${records.length} record${records.length === 1 ? "" : "s"}` : ", no records"}`}
+                      aria-label={
+                        records.length > 0
+                          ? t("attendance.dayCount", { date: day, count: records.length })
+                          : t("attendance.dayNone", { date: day })
+                      }
                       className={cn(
                         "flex min-h-10 flex-col items-center justify-center rounded-lg px-1 py-1.5 text-xs tabular-nums transition-colors",
                         worst ? (STATUS_STYLE[worst.status] ?? "bg-muted") : "text-muted-foreground hover:bg-muted",
@@ -325,16 +360,16 @@ export function AttendanceClient() {
                 <div className="mt-3 space-y-2 border-t pt-3">
                   <p className="text-sm font-medium">{selectedDay}</p>
                   {selectedRecords.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No records that day.</p>
+                    <p className="text-sm text-muted-foreground">{t("attendance.noRecordsDay")}</p>
                   ) : (
                     <ul className="space-y-2">
                       {selectedRecords.map((record) => (
                         <li key={record.id} className="flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm">
                           <Badge variant="outline" className={cn(STATUS_STYLE[record.status] ?? "")}>
-                            {record.status.charAt(0) + record.status.slice(1).toLowerCase()}
+                            {STATUS_KEY[record.status] ? t(STATUS_KEY[record.status]) : record.status}
                           </Badge>
                           <span className="min-w-0 flex-1 text-muted-foreground">
-                            {record.subjectName ?? "General"}
+                            {record.subjectName ?? t("attendance.general")}
                             {record.className ? ` · ${record.className}` : ""}
                           </span>
                         </li>
@@ -344,10 +379,10 @@ export function AttendanceClient() {
                 </div>
               )}
               <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-success/15" aria-hidden /> Present</span>
-                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-warning/15" aria-hidden /> Late</span>
-                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-destructive/10" aria-hidden /> Absent</span>
-                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-muted" aria-hidden /> Excused</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-success/15" aria-hidden /> {t("attendance.present")}</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-warning/15" aria-hidden /> {t("attendance.statusLATE")}</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-destructive/10" aria-hidden /> {t("attendance.absent")}</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-muted" aria-hidden /> {t("attendance.statusEXCUSED")}</span>
               </div>
             </CardContent>
           </Card>
@@ -356,7 +391,7 @@ export function AttendanceClient() {
           <Card>
             <CardContent className="space-y-2 pt-4">
               {data.records.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No attendance records yet.</p>
+                <p className="text-sm text-muted-foreground">{t("attendance.noRecordsYet")}</p>
               ) : (
                 <ol className="divide-y rounded-lg border">
                   {data.records.map((record) => (
@@ -365,10 +400,10 @@ export function AttendanceClient() {
                         {record.date}
                       </span>
                       <Badge variant="outline" className={cn("shrink-0", STATUS_STYLE[record.status] ?? "")}>
-                        {record.status.charAt(0) + record.status.slice(1).toLowerCase()}
+                        {STATUS_KEY[record.status] ? t(STATUS_KEY[record.status]) : record.status}
                       </Badge>
                       <span className="min-w-0 flex-1 truncate text-muted-foreground">
-                        {record.subjectName ?? "General"}
+                        {record.subjectName ?? t("attendance.general")}
                         {record.className ? ` · ${record.className}` : ""}
                       </span>
                     </li>

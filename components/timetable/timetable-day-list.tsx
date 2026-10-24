@@ -1,7 +1,17 @@
 import { Badge } from "@/components/ui/badge";
-import { DAY_LABELS, GRID_DAYS, breakLabel, breakPosition, type GridDay } from "./timetable-utils";
+import { GRID_DAYS, breakPosition, type GridDay } from "./timetable-utils";
 import type { StudentTimetableEntry } from "@/lib/api/types";
-import { formatTime } from "@/lib/utils";
+import { formatTime, formatTimeLocale } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import type { MessageKey } from "@/lib/i18n/locale-provider";
+
+const DAY_KEYS: Record<GridDay, MessageKey> = {
+  MON: "timetable.dayMon",
+  TUE: "timetable.dayTue",
+  WED: "timetable.dayWed",
+  THU: "timetable.dayThu",
+  SAT: "timetable.daySat",
+};
 
 type TimelineItem =
   | { key: string; kind: "lesson"; entry: StudentTimetableEntry }
@@ -57,21 +67,25 @@ export function TimetableDayList({
   entries: StudentTimetableEntry[];
   days?: GridDay[];
 }) {
+  const { t, locale } = useI18n();
   const shown = days.filter((day) => entries.some((entry) => entry.dayOfWeek === day));
   return (
     <>
       {shown.map((day) => {
         const items = dayTimeline(entries.filter((entry) => entry.dayOfWeek === day));
         return (
-          <section key={day} aria-label={DAY_LABELS[day]}>
+          <section key={day} aria-label={t(DAY_KEYS[day])}>
             <ol className="divide-y rounded-lg border">
               {items.map((item) =>
                 item.kind === "break" ? (
                   <li key={item.key} className="px-3 py-2 text-sm">
                     <span className="text-xs font-medium text-muted-foreground">
-                      Break · {breakLabel(item.after)}
+                      {t("timetable.break")} ·{" "}
+                      {item.after === 0
+                        ? t("timetable.beforeClasses")
+                        : t("timetable.afterPeriod", { period: item.after })}
                       <span className="ml-1 font-mono font-normal">
-                        {formatTime(item.entry.startTime)}–{formatTime(item.entry.endTime)}
+                        {formatTimeLocale(item.entry.startTime, locale)}–{formatTimeLocale(item.entry.endTime, locale)}
                       </span>
                     </span>
                   </li>
@@ -81,10 +95,10 @@ export function TimetableDayList({
                     className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm"
                   >
                     <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                      {formatTime(item.entry.startTime)}–{formatTime(item.entry.endTime)}
+                      {formatTimeLocale(item.entry.startTime, locale)}–{formatTimeLocale(item.entry.endTime, locale)}
                     </span>
                     <span className="order-3 min-w-0 basis-full break-words font-medium sm:order-1 sm:flex-1 sm:truncate">
-                      {item.entry.isBreak ? "Break" : (item.entry.subjectName ?? "—")}
+                      {item.entry.isBreak ? t("timetable.break") : (item.entry.subjectName ?? "—")}
                     </span>
                     {!item.entry.isBreak && item.entry.teacherName && (
                       <Badge variant="secondary" className="order-2 ml-auto shrink-0 sm:ml-0">

@@ -1,7 +1,17 @@
 import * as React from "react";
 import type { StudentTimetableEntry } from "@/lib/api/types";
-import { formatTime } from "@/lib/utils";
-import { GRID_DAYS, DAY_LABELS, breakLabel, breakPosition, ordinal, type GridDay } from "./timetable-utils";
+import { formatTime, formatTimeLocale } from "@/lib/utils";
+import { GRID_DAYS, breakPosition, ordinal, type GridDay } from "./timetable-utils";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import type { MessageKey } from "@/lib/i18n/locale-provider";
+
+const DAY_KEYS: Record<GridDay, MessageKey> = {
+  MON: "timetable.dayMon",
+  TUE: "timetable.dayTue",
+  WED: "timetable.dayWed",
+  THU: "timetable.dayThu",
+  SAT: "timetable.daySat",
+};
 
 /**
  * Week grid: period columns 1..R (R is at least 9) crossed with one row per
@@ -18,6 +28,7 @@ export function TimetableGrid({
   days?: GridDay[];
   caption?: string;
 }) {
+  const { t, locale } = useI18n();
   const lessons = entries.filter((entry) => !entry.isBreak);
   const breaks = entries.filter((entry) => entry.isBreak);
   const maxPeriod = lessons.reduce((max, entry) => Math.max(max, entry.periodNo), 0);
@@ -42,6 +53,7 @@ export function TimetableGrid({
 
   const dayLessons = (day: string) => [...(lessonsByDay.get(day)?.values() ?? [])];
   const columns = Array.from({ length: columnCount }, (_, index) => index + 1);
+  const time = (value: string) => formatTimeLocale(value, locale);
 
   return (
     <div className="overflow-x-auto rounded-lg border">
@@ -51,13 +63,13 @@ export function TimetableGrid({
           <tr>
             <th
               scope="col"
-              className="sticky left-0 w-16 border-b border-r bg-card p-2 text-left text-xs font-medium text-muted-foreground"
+              className="sticky left-0 w-16 border-b border-r bg-card p-2 text-start text-xs font-medium text-muted-foreground"
             >
-              Day
+              {t("timetable.day")}
             </th>
             {columns.map((period) => (
-              <th key={period} scope="col" className="border-b p-2 text-left text-xs font-medium text-muted-foreground">
-                {ordinal(period)}
+              <th key={period} scope="col" className="border-b p-2 text-start text-xs font-medium text-muted-foreground">
+                {locale === "ar" ? period : ordinal(period)}
               </th>
             ))}
           </tr>
@@ -71,8 +83,8 @@ export function TimetableGrid({
             return (
               <React.Fragment key={day}>
                 <tr>
-                  <th scope="row" className="sticky left-0 w-16 border-r bg-card p-2 text-left align-top text-xs font-medium">
-                    {DAY_LABELS[day]}
+                  <th scope="row" className="sticky left-0 w-16 border-r bg-card p-2 text-start align-top text-xs font-medium">
+                    {t(DAY_KEYS[day])}
                   </th>
                   {columns.map((period) => {
                     const entry = lessonsByDay.get(day)?.get(period) ?? null;
@@ -80,7 +92,7 @@ export function TimetableGrid({
                       return (
                         <td key={period} className="p-2 align-top text-muted-foreground">
                           <span aria-hidden="true">—</span>
-                          <span className="sr-only">Free period</span>
+                          <span className="sr-only">{t("timetable.free")}</span>
                         </td>
                       );
                     }
@@ -94,7 +106,7 @@ export function TimetableGrid({
                             </p>
                           )}
                           <p className="font-mono text-[11px] leading-tight text-muted-foreground">
-                            {formatTime(entry.startTime)}–{formatTime(entry.endTime)}
+                            {time(entry.startTime)}–{time(entry.endTime)}
                           </p>
                           {entry.room && (
                             <p className="truncate text-[11px] leading-tight text-muted-foreground">{entry.room}</p>
@@ -107,15 +119,18 @@ export function TimetableGrid({
                 {positioned.length > 0 && (
                   <tr key={`${day}-breaks`}>
                     <th scope="row" className="sticky left-0 w-16 border-r bg-card p-2 align-top">
-                      <span className="sr-only">Breaks</span>
+                      <span className="sr-only">{t("timetable.srBreaks")}</span>
                     </th>
                     <td colSpan={columnCount} className="bg-muted/60 p-2 align-top">
                       <div className="flex flex-wrap gap-x-4 gap-y-1">
                         {positioned.map(({ entry, after }) => (
                           <p key={entry.id} className="text-[11px] font-medium leading-tight text-muted-foreground">
-                            Break · {breakLabel(after)}
+                            {t("timetable.break")} ·{" "}
+                            {after === null
+                              ? t("timetable.beforeClasses")
+                              : t("timetable.afterPeriod", { period: after })}
                             <span className="ml-1 font-mono font-normal">
-                              {formatTime(entry.startTime)}–{formatTime(entry.endTime)}
+                              {time(entry.startTime)}–{time(entry.endTime)}
                             </span>
                           </p>
                         ))}
