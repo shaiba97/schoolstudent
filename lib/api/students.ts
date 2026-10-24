@@ -4,6 +4,7 @@ import type {
   PerformanceTrend,
   StudentAttendance,
   StudentCases,
+  StudentFinance,
   StudentNotification,
   StudentProfile,
   StudentResults,
@@ -35,6 +36,10 @@ export function getPerformanceTrend(metric: "results" | "attendance", window: Tr
 
 export function getStudentCases() {
   return studentApiFetch<StudentCases>("/students/me/cases");
+}
+
+export function getStudentFinance() {
+  return studentApiFetch<StudentFinance>("/students/me/finance");
 }
 
 export function listMyNotifications() {
