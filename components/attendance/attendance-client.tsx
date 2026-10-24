@@ -29,10 +29,10 @@ const WINDOWS: Array<{ value: TrendWindow; labelKey: MessageKey }> = [
 ];
 
 const STATUS_STYLE: Record<string, string> = {
-  PRESENT: "bg-success/15 text-success",
-  ABSENT: "bg-destructive/10 text-destructive",
-  LATE: "bg-warning/15 text-warning",
-  EXCUSED: "bg-muted text-muted-foreground",
+  PRESENT: "bg-success-surface text-success",
+  ABSENT: "bg-destructive-surface text-destructive",
+  LATE: "bg-warning-surface text-warning",
+  EXCUSED: "bg-info-surface text-info",
 };
 
 const STATUS_KEY: Record<string, MessageKey> = {
@@ -379,10 +379,10 @@ export function AttendanceClient() {
                 </div>
               )}
               <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-success/15" aria-hidden /> {t("attendance.present")}</span>
-                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-warning/15" aria-hidden /> {t("attendance.statusLATE")}</span>
-                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-destructive/10" aria-hidden /> {t("attendance.absent")}</span>
-                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-muted" aria-hidden /> {t("attendance.statusEXCUSED")}</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-success-surface" aria-hidden /> {t("attendance.present")}</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-warning-surface" aria-hidden /> {t("attendance.statusLATE")}</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-destructive-surface" aria-hidden /> {t("attendance.absent")}</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block size-2.5 rounded-sm bg-info-surface" aria-hidden /> {t("attendance.statusEXCUSED")}</span>
               </div>
             </CardContent>
           </Card>

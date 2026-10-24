@@ -27,7 +27,7 @@ export function MobileTopBar() {
   const profileActive = pathname === "/profile" || pathname.startsWith("/profile/");
 
   return (
-    <div className="fixed inset-x-0 top-0 z-40 border-b border-primary-foreground/20 bg-primary print:hidden md:hidden">
+    <div className="fixed inset-x-0 top-0 z-40 border-b border-[#A5F3FC] bg-secondary text-foreground print:hidden md:hidden">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
         <div className="-ml-2 flex items-center">
           <Link
@@ -35,8 +35,8 @@ export function MobileTopBar() {
             aria-current={notificationsActive ? "page" : undefined}
             aria-label={showBadge ? t("nav.unread", { label: t("nav.notificationsLabel"), count: unread }) : t("nav.notificationsLabel")}
             className={cn(
-              "relative inline-flex size-10 items-center justify-center rounded-lg hover:bg-primary-foreground/15",
-              notificationsActive ? "text-primary-foreground" : "text-primary-foreground/70 hover:text-primary-foreground",
+              "relative inline-flex size-10 items-center justify-center rounded-lg text-primary hover:bg-[#A5F3FC]",
+              notificationsActive ? "bg-[#A5F3FC]" : "",
             )}
           >
             <Bell size={20} aria-hidden />
@@ -44,7 +44,7 @@ export function MobileTopBar() {
               <Badge
                 variant="default"
                 aria-hidden="true"
-                className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-foreground px-1 text-[10px] text-primary"
+                className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] text-accent-foreground"
               >
                 {unread > 99 ? "99+" : unread}
               </Badge>
@@ -52,18 +52,18 @@ export function MobileTopBar() {
           </Link>
         </div>
         <div className="flex items-center gap-2 min-[380px]:gap-3">
-          <p className="hidden text-xs font-medium uppercase tracking-wider text-primary-foreground/70 min-[360px]:block">
+          <p className="hidden text-xs font-medium uppercase tracking-wider text-foreground min-[360px]:block">
             {t("portal.headerName")}
           </p>
-          <LanguageToggle />
+          <LanguageToggle className="border-[#A5F3FC] bg-white" />
         </div>
         <Link
           href="/profile"
           aria-current={profileActive ? "page" : undefined}
           aria-label={t("nav.profileLabel")}
           className={cn(
-            "inline-flex size-10 items-center justify-center rounded-lg hover:bg-primary-foreground/15",
-            profileActive ? "text-primary-foreground" : "text-primary-foreground/70 hover:text-primary-foreground",
+            "inline-flex size-10 items-center justify-center rounded-lg text-primary hover:bg-[#A5F3FC]",
+            profileActive ? "bg-[#A5F3FC]" : "",
           )}
         >
           <UserRound size={20} aria-hidden />

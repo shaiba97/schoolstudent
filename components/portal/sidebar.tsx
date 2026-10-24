@@ -54,21 +54,24 @@ export function Sidebar() {
             className={cn(
               "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               active
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "bg-sidebar-active text-sidebar-active-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-hover hover:text-sidebar-foreground",
             )}
           >
-            <Icon size={16} aria-hidden />
+            {active ? (
+              <span className="w-1 shrink-0 rounded-r bg-sidebar-indicator" aria-hidden />
+            ) : null}
+            <Icon size={16} className={active ? undefined : "text-sidebar-icon"} aria-hidden />
             <span className="whitespace-nowrap">{label}</span>
             {withBadge && (
               <Badge
                 aria-hidden="true"
                 className={cn(
                   "ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px]",
-                  // On the active row the default indigo fill would vanish
-                  // against bg-primary, so the pill inverts instead.
+                  // On the active row the default fill would vanish against the
+                  // selected surface, so the pill inverts instead.
                   active
-                    ? "bg-primary-foreground/25 text-primary-foreground"
+                    ? "bg-sidebar-active-foreground/25 text-sidebar-active-foreground"
                     : "bg-primary text-primary-foreground",
                 )}
               >

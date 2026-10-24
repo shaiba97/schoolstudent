@@ -123,7 +123,7 @@ export function ProfileClient() {
               {profile.field && <Badge variant="outline">{profile.field}</Badge>}
             </p>
           </div>
-          <UserRound size={20} className="text-muted-foreground" aria-hidden />
+          <UserRound size={20} className="rounded-lg bg-[#CFFAFE] p-1 text-[#0284C7]" aria-hidden />
         </CardContent>
       </Card>
 

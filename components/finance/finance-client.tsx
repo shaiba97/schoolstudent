@@ -37,11 +37,11 @@ const INSTALLMENT_STATUS_KEY: Record<LedgerInstallment["status"], MessageKey> = 
   PENDING: "finance.instPending",
 };
 
-const INSTALLMENT_BADGE_VARIANT: Record<LedgerInstallment["status"], "default" | "secondary" | "destructive" | "outline"> = {
-  PAID: "default",
-  PARTIAL: "secondary",
+const INSTALLMENT_BADGE_VARIANT: Record<LedgerInstallment["status"], "success" | "warning" | "info" | "destructive"> = {
+  PAID: "success",
+  PARTIAL: "warning",
   OVERDUE: "destructive",
-  PENDING: "outline",
+  PENDING: "info",
 };
 
 // Backend payment_method enum — displayed as-is, localized by useI18n.
@@ -131,8 +131,8 @@ export function FinanceClient() {
                 data.totals.status === "OVERDUE"
                   ? "destructive"
                   : data.totals.status === "FULLY_PAID"
-                    ? "default"
-                    : "secondary"
+                    ? "success"
+                    : "warning"
               }
             >
               {t(TOTAL_STATUS_KEY[data.totals.status])}

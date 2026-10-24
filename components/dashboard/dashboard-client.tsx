@@ -200,7 +200,7 @@ export function DashboardClient() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <GraduationCap size={14} aria-hidden /> {t("dashboard.averageScore")}
+              <GraduationCap size={14} className="rounded-lg bg-[#CFFAFE] p-1 text-[#0284C7]" aria-hidden /> {t("dashboard.averageScore")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -221,7 +221,7 @@ export function DashboardClient() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <CalendarCheck size={14} aria-hidden /> {t("dashboard.attendance")}
+              <CalendarCheck size={14} className="rounded-lg bg-[#DCFCE7] p-1 text-[#15803D]" aria-hidden /> {t("dashboard.attendance")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -243,7 +243,7 @@ export function DashboardClient() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Bell size={14} aria-hidden /> {t("dashboard.unread")}
+              <Bell size={14} className="rounded-lg bg-[#FFEDD5] p-1 text-[#C2410C]" aria-hidden /> {t("dashboard.unread")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -367,11 +367,11 @@ export function DashboardClient() {
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <Bell size={14} className="text-muted-foreground" aria-hidden /> {t("dashboard.recentAnnouncements")}
+              <Bell size={14} className="rounded-lg bg-[#CFFAFE] p-1 text-[#0284C7]" aria-hidden /> {t("dashboard.recentAnnouncements")}
             </CardTitle>
             <Link
               href="/notifications"
-              className="inline-flex h-7 items-center rounded-md px-2.5 text-[0.8rem] font-medium hover:bg-muted hover:text-foreground"
+              className="inline-flex h-7 items-center rounded-md px-2.5 text-[0.8rem] font-medium hover:bg-[#CFFAFE] hover:text-[#0284C7]"
             >
               {t("common.viewAll")}
             </Link>

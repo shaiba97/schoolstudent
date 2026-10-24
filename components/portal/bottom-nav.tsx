@@ -30,7 +30,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label={t("nav.label")}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-primary-foreground/20 bg-primary print:hidden md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-sidebar print:hidden md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="mx-auto grid w-full max-w-6xl grid-cols-6 px-1 pt-1">
@@ -45,8 +45,8 @@ export function BottomNav() {
               className={cn(
                 "flex min-w-0 flex-col items-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-medium transition-colors",
                 active
-                  ? "bg-primary-foreground/15 text-primary-foreground"
-                  : "text-primary-foreground/70 hover:text-primary-foreground",
+                  ? "text-white border-b-2 border-sidebar-indicator"
+                  : "text-secondary hover:text-white",
               )}
             >
               <Icon size={20} aria-hidden />

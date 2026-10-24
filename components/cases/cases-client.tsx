@@ -109,7 +109,7 @@ export function CasesClient() {
       {cases.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center">
-            <FolderOpen size={20} className="mx-auto text-muted-foreground" aria-hidden />
+            <FolderOpen size={20} className="mx-auto rounded-lg bg-[#CFFAFE] p-1 text-[#0284C7]" aria-hidden />
             <p className="mt-2 text-sm font-medium">{t("cases.noCases")}</p>
             <p className="mt-1 text-sm text-muted-foreground">
               {t("cases.noCasesHint")}

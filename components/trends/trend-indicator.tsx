@@ -21,6 +21,10 @@ function verdictIcon(verdict: TrendVerdict): typeof TrendingUp {
   return Minus;
 }
 
+function VerdictIcon({ Icon }: { Icon: typeof TrendingUp }) {
+  return <Icon size={12} aria-hidden />;
+}
+
 function verdictVariant(verdict: TrendVerdict): "success" | "destructive" | "muted" {
   if (verdict === "improving") return "success";
   if (verdict === "declining") return "destructive";
@@ -50,7 +54,6 @@ export function TrendIndicator({
       </span>
     );
   }
-  const Icon = verdictIcon(verdict);
   const points = series.map((point, index) => ({
     index,
     value: point.value ?? null,
@@ -59,7 +62,7 @@ export function TrendIndicator({
   return (
     <span className={cn("inline-flex min-w-0 items-center gap-2", className)}>
       <Badge variant={verdictVariant(verdict)}>
-        <Icon size={12} aria-hidden />
+        <VerdictIcon Icon={verdictIcon(verdict)} />
         {t(VERDICT_KEY[verdict])}
       </Badge>
       <span className="shrink-0 text-xs font-medium tabular-nums">{formatDelta(delta)}</span>

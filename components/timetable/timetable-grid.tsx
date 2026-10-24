@@ -121,7 +121,7 @@ export function TimetableGrid({
                     <th scope="row" className="sticky left-0 w-16 border-r bg-card p-2 align-top">
                       <span className="sr-only">{t("timetable.srBreaks")}</span>
                     </th>
-                    <td colSpan={columnCount} className="bg-muted/60 p-2 align-top">
+                    <td colSpan={columnCount} className="bg-[#CFFAFE]/60 p-2 align-top">
                       <div className="flex flex-wrap gap-x-4 gap-y-1">
                         {positioned.map(({ entry, after }) => (
                           <p key={entry.id} className="text-[11px] font-medium leading-tight text-muted-foreground">

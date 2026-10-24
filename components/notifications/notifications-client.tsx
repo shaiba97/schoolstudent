@@ -144,7 +144,7 @@ export function NotificationsClient() {
       {visible.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center">
-            <Bell size={20} className="mx-auto text-muted-foreground" aria-hidden />
+            <Bell size={20} className="mx-auto rounded-lg bg-[#CFFAFE] p-1 text-[#0284C7]" aria-hidden />
             <p className="mt-2 text-sm font-medium">
               {filter === "unread" ? t("notifications.allCaughtUp") : t("notifications.none")}
             </p>
