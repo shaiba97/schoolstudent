@@ -21,7 +21,7 @@ type SocketState =
  * Live domain-event channel with polling fallback.
  *
  * Contract (both sides): socket payloads are invalidation signals, never row
- * contents. Every event — and every reconnect that follows a drop — triggers
+ * contents. Every event â€” and every reconnect that follows a drop â€” triggers
  * a REST refetch owned by the caller, so a missed, duplicated, or reordered
  * event can never corrupt what is on screen; at worst it causes one extra
  * fetch. REST stays the source of truth.
@@ -29,14 +29,14 @@ type SocketState =
  * Connection lifecycle:
  * - Authenticates with a short-lived ticket minted from the httpOnly session
  *   (`GET /api/session/socket-ticket`); the session JWT never reaches JS.
- * - Reconnects indefinitely with backoff (1s → 30s cap, jittered); the hook
+ * - Reconnects indefinitely with backoff (1s â†’ 30s cap, jittered); the hook
  *   reports `offline` while disconnected and `live` on connect.
  * - Refreshes the ticket by connecting a new socket first, then dropping the
- *   old one — no gap in coverage.
+ *   old one â€” no gap in coverage.
  * - Revalidates on window focus and refetches after any reconnect that
  *   follows a drop, closing the missed-event window.
  * - If the ticket endpoint or the gateway is unreachable, settles on
- *   `offline` and the caller polls REST instead — the page never breaks for
+ *   `offline` and the caller polls REST instead â€” the page never breaks for
  *   lack of a socket.
  */
 export function useRealtimeEvent(
@@ -92,7 +92,7 @@ export function useRealtimeEvent(
         return;
       }
 
-      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000", {
+      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "https://schoolbackend-7n8a.onrender.com", {
         auth: { token: data.ticket },
         withCredentials: true,
         reconnection: true,
